@@ -50,12 +50,14 @@ def deposit(
         created_at=get_kst_time()
     )
 
-    # 잔고 업데이트
-    current_user.balance += transaction_in.amount
+    # 사용자 잔고 업데이트
+    db_user = db.query(User).filter(User.id == current_user.id).first()
+    db_user.balance += transaction_in.amount
 
     db.add(transaction)
     db.commit()
     db.refresh(transaction)
+    db.refresh(db_user)
 
     # 감사 로그 기록
     log_user_action(
@@ -86,8 +88,9 @@ def withdraw(
             detail="잘못된 거래 유형입니다."
         )
 
-    # 잔고 확인
-    if current_user.balance < transaction_in.amount:
+    # 사용자 잔고 확인
+    db_user = db.query(User).filter(User.id == current_user.id).first()
+    if db_user.balance < transaction_in.amount:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="잔고가 부족합니다."
@@ -105,11 +108,12 @@ def withdraw(
     )
 
     # 잔고 업데이트
-    current_user.balance -= transaction_in.amount
+    db_user.balance -= transaction_in.amount
 
     db.add(transaction)
     db.commit()
     db.refresh(transaction)
+    db.refresh(db_user)
 
     # 감사 로그 기록
     log_user_action(

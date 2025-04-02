@@ -277,6 +277,11 @@ class AdvisoryRecommendation(CommonModel):
     advisory_request_id = Column(String(36), ForeignKey("advisory_requests.id"), nullable=False, comment="자문 요청 ID")
     stock_id = Column(String(36), ForeignKey("stocks.id"), nullable=False, comment="추천 증권 ID")
     quantity = Column(Integer, nullable=False, comment="추천 수량")
+    price_at_time = Column(Float, nullable=False, comment="추천 시점의 주가")
+    total_investment = Column(Float, nullable=False, comment="총 투자금액")
+    market_cap = Column(Float, nullable=False, comment="시가총액")
+    change_rate = Column(Float, nullable=False, comment="등락률")
+    volume = Column(Integer, nullable=False, comment="거래량")
 
     advisory_request = relationship("AdvisoryRequest", back_populates="recommendations")
     stock = relationship("Stock", back_populates="recommendations")

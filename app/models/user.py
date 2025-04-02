@@ -20,6 +20,7 @@ class PortfolioType(str, enum.Enum):
     """
     AGGRESSIVE = "aggressive"  # 최대한 많은 증권 구매
     BALANCED = "balanced"  # 중간 수준 증권 구매
+    CONSERVATIVE = "conservative"  # 최소한 많은 증권 구매
 
 
 class User(CommonModel):

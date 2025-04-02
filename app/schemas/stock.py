@@ -1,10 +1,13 @@
 from datetime import datetime
-from typing import Optional, List, Dict, Any
-from decimal import Decimal
+from typing import Optional, List, Dict, Any, ForwardRef
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, ConfigDict
 
 from app.models.stock import PortfolioType
+
+# Forward references for circular dependencies
+StockRef = ForwardRef('Stock')
+AdvisoryRecommendationRef = ForwardRef('AdvisoryRecommendation')
 
 
 class StockBase(BaseModel):
@@ -47,8 +50,7 @@ class StockInDB(StockBase):
     created_at: datetime  # 생성일시
     updated_at: Optional[datetime] = None  # 수정일시
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Stock(StockInDB):
@@ -75,18 +77,17 @@ class UserStockInDB(UserStockBase):
     created_at: datetime  # 생성일시
     updated_at: Optional[datetime] = None  # 수정일시
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserStock(UserStockInDB):
     """사용자 보유 증권 정보 응답 스키마"""
-    stock: Stock  # 증권 상세 정보
+    stock: StockRef  # 증권 상세 정보
 
 
 class TransactionBase(BaseModel):
     """거래 기본 정보 스키마"""
-    type: str   # 거래 유형 ('deposit' 입금 또는 'withdraw' 출금)
+    type: str  # 거래 유형 ('deposit' 입금 또는 'withdraw' 출금)
     amount: float = Field(..., gt=0, description="거래 금액 (원화)")  # 거래 금액
 
     @validator('amount')
@@ -113,52 +114,15 @@ class TransactionInDB(TransactionBase):
     created_at: datetime  # 생성일시
     updated_at: Optional[datetime] = None  # 수정일시
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Transaction(TransactionInDB):
     """거래 정보 응답 스키마"""
+
     def format_amount(self) -> str:
         """금액을 원화 형식으로 포맷팅"""
         return f"{self.amount:,.0f}원"
-
-
-class AdvisoryRequestBase(BaseModel):
-    """자문 요청 기본 정보 스키마"""
-    portfolio_type: PortfolioType  # 포트폴리오 유형
-
-
-class AdvisoryRequestCreate(AdvisoryRequestBase):
-    """자문 요청 생성 스키마"""
-    pass
-
-
-class AdvisoryRequestInDB(AdvisoryRequestBase):
-    """데이터베이스에 저장된 자문 요청 정보 스키마"""
-    id: str
-    user_id: str
-    status: str
-    created_at: datetime
-    updated_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
-
-
-class AdvisoryRequest(AdvisoryRequestInDB):
-    """자문 요청 정보 응답 스키마"""
-    recommendations: List[AdvisoryRecommendation]  # 추천 증권 목록
-    total_investment: float  # 총 투자금액
-    portfolio_summary: Dict[str, Any]  # 포트폴리오 요약 정보
-
-    def format_summary(self) -> Dict[str, str]:
-        """포트폴리오 요약 정보를 포맷팅"""
-        return {
-            "total_investment": f"{self.total_investment:,.0f}원",
-            "num_stocks": f"{len(self.recommendations)}개",
-            "average_investment": f"{self.total_investment / len(self.recommendations):,.0f}원"
-        }
 
 
 class AdvisoryRecommendationBase(BaseModel):
@@ -193,10 +157,56 @@ class AdvisoryRecommendationInDB(AdvisoryRecommendationBase):
     advisory_request_id: str  # 자문 요청 ID
     created_at: datetime  # 생성일시
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AdvisoryRecommendation(AdvisoryRecommendationInDB):
     """자문 추천 정보 응답 스키마"""
-    stock: Stock  # 증권 상세 정보
+    stock: StockRef  # 증권 상세 정보
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdvisoryRequestBase(BaseModel):
+    """자문 요청 기본 정보 스키마"""
+    portfolio_type: PortfolioType  # 포트폴리오 유형
+
+
+class AdvisoryRequestCreate(AdvisoryRequestBase):
+    """자문 요청 생성 스키마"""
+    pass
+
+
+class AdvisoryRequestInDB(AdvisoryRequestBase):
+    """데이터베이스에 저장된 자문 요청 정보 스키마"""
+    id: str
+    user_id: str
+    status: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdvisoryRequest(AdvisoryRequestInDB):
+    """자문 요청 정보 응답 스키마"""
+    recommendations: List[AdvisoryRecommendationRef]  # 추천 증권 목록
+    total_investment: float  # 총 투자금액
+    portfolio_summary: Dict[str, Any]  # 포트폴리오 요약 정보
+
+    def format_summary(self) -> Dict[str, str]:
+        """포트폴리오 요약 정보를 포맷팅"""
+        return {
+            "total_investment": f"{self.total_investment:,.0f}원",
+            "num_stocks": f"{len(self.recommendations)}개",
+            "average_investment": f"{self.total_investment / len(self.recommendations):,.0f}원"
+        }
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# Update forward references
+Stock.model_rebuild()
+UserStock.model_rebuild()
+AdvisoryRecommendation.model_rebuild()
+AdvisoryRequest.model_rebuild()

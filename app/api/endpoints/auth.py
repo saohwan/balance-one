@@ -35,16 +35,21 @@ class LoginRequest(BaseModel):
 
 def check_login_attempts(db: Session, user: User, ip_address: str) -> bool:
     """로그인 시도 횟수를 확인하고 제한을 적용합니다."""
-    # 최근 30분 동안의 실패한 로그인 시도 횟수 확인
-    recent_attempts = db.query(LoginAttempt).filter(
+    # 최근 30분 동안의 실패한 로그인 시도 확인
+    recent_failed_attempt = db.query(LoginAttempt).filter(
         LoginAttempt.user_id == user.id,
         LoginAttempt.ip_address == ip_address,
         LoginAttempt.is_successful == False,
         LoginAttempt.last_attempt_at >= func.now() - timedelta(minutes=LOGIN_TIMEOUT_MINUTES)
-    ).order_by(LoginAttempt.last_attempt_at.desc()).first()
+    ).first()
 
-    if recent_attempts and recent_attempts.attempt_count >= MAX_LOGIN_ATTEMPTS:
-        return False
+    # 실패 시도가 5회 이상이면 로그인 제한
+    if recent_failed_attempt and recent_failed_attempt.attempt_count >= MAX_LOGIN_ATTEMPTS:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"로그인 시도 횟수가 너무 많습니다. {LOGIN_TIMEOUT_MINUTES}분 후에 다시 시도해주세요."
+        )
+    
     return True
 
 
@@ -56,27 +61,39 @@ def record_login_attempt(
         is_successful: bool
 ) -> None:
     """로그인 시도 기록을 저장합니다."""
-    # 최근 시도 기록 조회
-    recent_attempt = db.query(LoginAttempt).filter(
-        LoginAttempt.user_id == user.id,
-        LoginAttempt.ip_address == ip_address,
-        LoginAttempt.last_attempt_at >= func.now() - timedelta(minutes=LOGIN_TIMEOUT_MINUTES)
-    ).order_by(LoginAttempt.last_attempt_at.desc()).first()
-
-    if recent_attempt and not is_successful:
-        # 실패한 경우 시도 횟수 증가
-        recent_attempt.attempt_count += 1
-        recent_attempt.last_attempt_at = func.now()
-    else:
-        # 새로운 시도 기록 생성
+    if is_successful:
+        # 성공한 경우 새로운 성공 기록 생성
         new_attempt = LoginAttempt(
             user_id=user.id,
             ip_address=ip_address,
             user_agent=user_agent,
-            is_successful=is_successful,
+            is_successful=True,
             attempt_count=1
         )
         db.add(new_attempt)
+    else:
+        # 최근 실패 기록 조회 (30분 이내)
+        recent_failed_attempt = db.query(LoginAttempt).filter(
+            LoginAttempt.user_id == user.id,
+            LoginAttempt.ip_address == ip_address,
+            LoginAttempt.is_successful == False,
+            LoginAttempt.last_attempt_at >= func.now() - timedelta(minutes=LOGIN_TIMEOUT_MINUTES)
+        ).first()
+
+        if recent_failed_attempt:
+            # 기존 실패 기록이 있으면 시도 횟수 증가
+            recent_failed_attempt.attempt_count += 1
+            recent_failed_attempt.last_attempt_at = func.now()
+        else:
+            # 새로운 실패 기록 생성
+            new_attempt = LoginAttempt(
+                user_id=user.id,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                is_successful=False,
+                attempt_count=1
+            )
+            db.add(new_attempt)
 
     db.commit()
 

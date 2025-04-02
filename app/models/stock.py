@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Integer, Enum
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Integer, Enum, func
+from sqlalchemy.orm import relationship, Session
+from sqlalchemy.sql import func as sql_func
 
 from app.core.database import Base
 from app.utils.constant.globals import TransactionType, AdvisoryStatus, PortfolioType
@@ -30,7 +30,7 @@ class Stock(CommonModel):
     sector = Column(String(50), nullable=True, comment="섹터")
     industry = Column(String(50), nullable=True, comment="산업")
     description = Column(String(500), nullable=True, comment="증권 설명")
-    last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="마지막 업데이트 시간")
+    last_updated = Column(DateTime(timezone=True), server_default=sql_func.now(), onupdate=sql_func.now(), comment="마지막 업데이트 시간")
 
     # Relationships
     users = relationship("UserStock", back_populates="stock")
@@ -38,6 +38,202 @@ class Stock(CommonModel):
 
     def __repr__(self):
         return f"{self.code} - {self.name}"
+
+    @classmethod
+    def get_total_count(cls, db: Session) -> int:
+        """현재 등록된 총 증권 개수를 반환합니다."""
+        return db.query(func.count(cls.id)).scalar()
+
+    @classmethod
+    def can_delete(cls, db: Session) -> bool:
+        """증권 삭제가 가능한지 확인합니다. (최소 10개 이상일 때만 가능)"""
+        return cls.get_total_count(db) > 10
+
+    @classmethod
+    def get_seed_data(cls) -> list:
+        """시스템 초기화를 위한 시드 데이터를 반환합니다."""
+        return [
+            cls(
+                code="005930",  # 삼성전자
+                name="삼성전자",
+                current_price=75000.0,
+                market_cap=450000000000000.0,
+                volume=15000000,
+                high_price=76000.0,
+                low_price=74000.0,
+                open_price=74500.0,
+                prev_close=74500.0,
+                change_rate=0.67,
+                change_amount=500.0,
+                pe_ratio=12.5,
+                dividend_yield=2.1,
+                sector="전기전자",
+                industry="반도체",
+                description="글로벌 전자기업"
+            ),
+            cls(
+                code="035720",  # 카카오
+                name="카카오",
+                current_price=45000.0,
+                market_cap=200000000000000.0,
+                volume=8000000,
+                high_price=46000.0,
+                low_price=44000.0,
+                open_price=44500.0,
+                prev_close=44500.0,
+                change_rate=1.12,
+                change_amount=500.0,
+                pe_ratio=25.3,
+                dividend_yield=0.5,
+                sector="IT",
+                industry="소프트웨어",
+                description="IT 플랫폼 기업"
+            ),
+            cls(
+                code="035420",  # NAVER
+                name="NAVER",
+                current_price=250000.0,
+                market_cap=150000000000000.0,
+                volume=5000000,
+                high_price=255000.0,
+                low_price=245000.0,
+                open_price=248000.0,
+                prev_close=248000.0,
+                change_rate=0.81,
+                change_amount=2000.0,
+                pe_ratio=30.5,
+                dividend_yield=0.3,
+                sector="IT",
+                industry="소프트웨어",
+                description="인터넷 서비스 기업"
+            ),
+            cls(
+                code="000660",  # SK하이닉스
+                name="SK하이닉스",
+                current_price=120000.0,
+                market_cap=180000000000000.0,
+                volume=12000000,
+                high_price=122000.0,
+                low_price=118000.0,
+                open_price=119000.0,
+                prev_close=119000.0,
+                change_rate=0.84,
+                change_amount=1000.0,
+                pe_ratio=8.5,
+                dividend_yield=1.2,
+                sector="전기전자",
+                industry="반도체",
+                description="메모리 반도체 기업"
+            ),
+            cls(
+                code="207940",  # 삼성바이오로직스
+                name="삼성바이오로직스",
+                current_price=850000.0,
+                market_cap=120000000000000.0,
+                volume=3000000,
+                high_price=860000.0,
+                low_price=840000.0,
+                open_price=845000.0,
+                prev_close=845000.0,
+                change_rate=0.59,
+                change_amount=5000.0,
+                pe_ratio=45.2,
+                dividend_yield=0.2,
+                sector="제약",
+                industry="바이오",
+                description="바이오시밀러 기업"
+            ),
+            cls(
+                code="005380",  # 현대차
+                name="현대차",
+                current_price=180000.0,
+                market_cap=380000000000000.0,
+                volume=9000000,
+                high_price=182000.0,
+                low_price=178000.0,
+                open_price=179000.0,
+                prev_close=179000.0,
+                change_rate=0.56,
+                change_amount=1000.0,
+                pe_ratio=6.8,
+                dividend_yield=2.5,
+                sector="자동차",
+                industry="자동차",
+                description="자동차 제조 기업"
+            ),
+            cls(
+                code="051910",  # LG화학
+                name="LG화학",
+                current_price=450000.0,
+                market_cap=65000000000000.0,
+                volume=4000000,
+                high_price=455000.0,
+                low_price=445000.0,
+                open_price=448000.0,
+                prev_close=448000.0,
+                change_rate=0.45,
+                change_amount=2000.0,
+                pe_ratio=15.2,
+                dividend_yield=1.8,
+                sector="화학",
+                industry="화학",
+                description="화학 기업"
+            ),
+            cls(
+                code="006400",  # 삼성SDI
+                name="삼성SDI",
+                current_price=550000.0,
+                market_cap=95000000000000.0,
+                volume=3500000,
+                high_price=555000.0,
+                low_price=545000.0,
+                open_price=548000.0,
+                prev_close=548000.0,
+                change_rate=0.36,
+                change_amount=2000.0,
+                pe_ratio=20.5,
+                dividend_yield=1.0,
+                sector="전기전자",
+                industry="2차전지",
+                description="2차전지 기업"
+            ),
+            cls(
+                code="068270",  # 셀트리온
+                name="셀트리온",
+                current_price=180000.0,
+                market_cap=120000000000000.0,
+                volume=6000000,
+                high_price=182000.0,
+                low_price=178000.0,
+                open_price=179000.0,
+                prev_close=179000.0,
+                change_rate=0.56,
+                change_amount=1000.0,
+                pe_ratio=35.8,
+                dividend_yield=0.3,
+                sector="제약",
+                industry="바이오",
+                description="바이오시밀러 기업"
+            ),
+            cls(
+                code="105560",  # KB금융
+                name="KB금융",
+                current_price=55000.0,
+                market_cap=220000000000000.0,
+                volume=7000000,
+                high_price=56000.0,
+                low_price=54000.0,
+                open_price=54500.0,
+                prev_close=54500.0,
+                change_rate=0.92,
+                change_amount=500.0,
+                pe_ratio=6.2,
+                dividend_yield=3.5,
+                sector="금융",
+                industry="은행",
+                description="금융기업"
+            )
+        ]
 
 
 class UserStock(CommonModel):

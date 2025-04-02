@@ -108,6 +108,23 @@ docker-compose down -v
 docker-compose up -d
 ```
 
+## 🚀 서버 실행
+
+### 개발 환경
+```bash
+# 개발 서버 실행 (자동 리로드)
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# 개발 서버 실행 (리로드 없음)
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+### 프로덕션 환경
+```bash
+# 프로덕션 서버 실행 (워커 4개)
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
 ## 📊 데이터베이스 마이그레이션
 
 ### Alembic 초기 설정

@@ -5,21 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.dependencies import get_current_user
+from app.models.stock import UserStock
 from app.models.user import User
-from app.models.stock import Stock, UserStock
-from app.models.transaction import Transaction
-from app.schemas.account import (
-    UserStockResponse,
-    TransactionResponse,
-    UserBalanceResponse,
-    UserProfileResponse,
-    UserProfileUpdate
-)
-from app.schemas.stock import TransactionCreate, Transaction as TransactionSchema
+from app.schemas.stock import TransactionCreate, Transaction as TransactionSchema, Transaction
 from app.schemas.user import UserBalance
 from app.utils.audit import log_user_action
-from app.utils.constant.globals import TransactionType
 
 router = APIRouter()
 
@@ -123,52 +114,52 @@ def withdraw(
     return transaction
 
 
-@router.get("/stocks", response_model=List[UserStockResponse])
-def get_user_stocks(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """사용자의 보유 주식 목록을 조회합니다."""
+@router.get("/balance", response_model=UserBalance)
+def get_balance(
+        *,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    현재 잔고와 보유 증권 목록을 조회합니다.
+    """
+    # 보유 증권 목록 조회
     user_stocks = db.query(UserStock).filter(UserStock.user_id == current_user.id).all()
-    return user_stocks
+
+    stocks = []
+    for user_stock in user_stocks:
+        stocks.append({
+            "stock_id": user_stock.stock_id,
+            "quantity": user_stock.quantity,
+            "average_price": user_stock.average_price,
+            "current_price": user_stock.stock.current_price,
+            "total_value": user_stock.quantity * user_stock.stock.current_price
+        })
+
+    return {
+        "balance": current_user.balance,
+        "stocks": stocks
+    }
 
 
-@router.get("/transactions", response_model=List[TransactionResponse])
-def get_user_transactions(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """사용자의 거래 내역을 조회합니다."""
-    transactions = db.query(Transaction).filter(Transaction.user_id == current_user.id).all()
+@router.get("/transactions", response_model=List[TransactionSchema])
+def get_transactions(
+        *,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+        skip: int = 0,
+        limit: int = 10
+) -> Any:
+    """
+    거래 내역을 조회합니다.
+    """
+    transactions = (
+        db.query(Transaction)
+        .filter(Transaction.user_id == current_user.id)
+        .order_by(Transaction.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
     return transactions
-
-
-@router.get("/balance", response_model=UserBalanceResponse)
-def get_user_balance(
-    current_user: User = Depends(get_current_user)
-):
-    """사용자의 계좌 잔고를 조회합니다."""
-    return {"balance": current_user.balance}
-
-
-@router.get("/profile", response_model=UserProfileResponse)
-def get_user_profile(
-    current_user: User = Depends(get_current_user)
-):
-    """사용자의 프로필 정보를 조회합니다."""
-    return current_user
-
-
-@router.put("/profile", response_model=UserProfileResponse)
-def update_user_profile(
-    profile_update: UserProfileUpdate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """사용자의 프로필 정보를 업데이트합니다."""
-    for field, value in profile_update.dict(exclude_unset=True).items():
-        setattr(current_user, field, value)
-    
-    db.commit()
-    db.refresh(current_user)
-    return current_user

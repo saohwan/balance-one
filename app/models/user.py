@@ -42,7 +42,7 @@ class User(CommonModel):
 
     # Relationships
     stocks = relationship("UserStock", back_populates="user")
-    transactions = relationship("Transaction", back_populates="user")
+    deposit_withdrawals = relationship("DepositWithdrawal", back_populates="user")
     advisory_requests = relationship("AdvisoryRequest", back_populates="user")
     audit_logs = relationship("AuditLog", back_populates="user")
 

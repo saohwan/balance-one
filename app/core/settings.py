@@ -19,6 +19,7 @@ class EnvironmentType(str, Enum):
 class Settings(BaseSettings):
     # 프로젝트 기본 설정
     PROJECT_NAME: str = "Balance One"
+    DESCRIPTION: str = "Balance One API Server"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: EnvironmentType = EnvironmentType.DEVELOPMENT

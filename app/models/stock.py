@@ -35,7 +35,6 @@ class Stock(CommonModel):
     # Relationships
     users = relationship("UserStock", back_populates="stock")
     recommendations = relationship("AdvisoryRecommendation", back_populates="stock")
-    transactions = relationship("Transaction", back_populates="stock")
 
     def __repr__(self):
         return f"{self.code} - {self.name}"

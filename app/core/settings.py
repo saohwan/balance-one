@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Balance One"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
+    ENVIRONMENT: EnvironmentType = EnvironmentType.DEVELOPMENT
 
     # 데이터베이스 설정
     DATABASE_URL: str = os.getenv(
@@ -32,6 +33,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_DAYS: int = 1  # 기존 ACCESS_TOKEN_EXPIRE_DAYS 대체
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # CORS 설정
@@ -45,6 +47,7 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
         env_file = ".env"
+        extra = "allow"  # 추가 필드 허용
 
 
 # 전역 설정 객체 생성

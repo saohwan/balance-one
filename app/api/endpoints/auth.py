@@ -1,6 +1,6 @@
 import uuid
 from datetime import timedelta
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
@@ -49,19 +49,27 @@ def check_login_attempts(db: Session, user: User, ip_address: str) -> bool:
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"로그인 시도 횟수가 너무 많습니다. {LOGIN_TIMEOUT_MINUTES}분 후에 다시 시도해주세요."
         )
-    
+
     return True
 
 
 def record_login_attempt(
         db: Session,
-        user: User,
+        user: Optional[User],
         ip_address: str,
         user_agent: str,
         is_successful: bool
 ) -> None:
-    """로그인 시도 기록을 저장합니다."""
-    if is_successful:
+    """로그인 시도 기록을 저장합니다.
+    TODO:
+    1. 계정이 없는 상태에서의 반복 로그인 방지 대책 구현 필요
+       - IP 주소 기반의 로그인 시도 제한
+       - 일정 시간 동안 로그인 시도 제한
+       - CAPTCHA 또는 reCAPTCHA 도입 검토
+       - IP 주소 블랙리스트 관리 기능
+    """
+
+    if is_successful and user:
         # 성공한 경우 새로운 성공 기록 생성
         new_attempt = LoginAttempt(
             user_id=user.id,
@@ -74,7 +82,6 @@ def record_login_attempt(
     else:
         # 최근 실패 기록 조회 (30분 이내)
         recent_failed_attempt = db.query(LoginAttempt).filter(
-            LoginAttempt.user_id == user.id,
             LoginAttempt.ip_address == ip_address,
             LoginAttempt.is_successful == False,
             LoginAttempt.last_attempt_at >= func.now() - timedelta(minutes=LOGIN_TIMEOUT_MINUTES)
@@ -87,7 +94,7 @@ def record_login_attempt(
         else:
             # 새로운 실패 기록 생성
             new_attempt = LoginAttempt(
-                user_id=user.id,
+                user_id=user.id if user else None,
                 ip_address=ip_address,
                 user_agent=user_agent,
                 is_successful=False,
@@ -153,10 +160,10 @@ def login(
     user_agent = request.headers.get("user-agent", "")
 
     if not user:
-        # 존재하지 않는 사용자의 경우에도 시도 기록
+        # 존재하지 않는 사용자의 경우 IP 주소만으로 시도 기록
         record_login_attempt(
             db=db,
-            user=User(id=str(uuid.uuid4()), email=login_data.username),  # 임시 사용자 객체
+            user=None,  # 사용자 없음
             ip_address=ip_address,
             user_agent=user_agent,
             is_successful=False

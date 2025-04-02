@@ -13,7 +13,7 @@ class LoginAttempt(CommonModel):
     """
     __tablename__ = "login_attempts"
 
-    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, comment="사용자 ID")
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=True, comment="사용자 ID")
     ip_address = Column(String(45), nullable=False, comment="로그인 시도 IP 주소")
     user_agent = Column(String(255), nullable=False, comment="사용자 브라우저/클라이언트 정보")
     is_successful = Column(Boolean, nullable=False, comment="로그인 성공 여부")
@@ -24,4 +24,4 @@ class LoginAttempt(CommonModel):
     user = relationship("User", back_populates="login_attempts")
 
     def __repr__(self):
-        return f"{self.user.email} - {self.ip_address} ({'성공' if self.is_successful else '실패'})" 
+        return f"{self.user.email if self.user else 'Unknown'} - {self.ip_address} ({'성공' if self.is_successful else '실패'})" 

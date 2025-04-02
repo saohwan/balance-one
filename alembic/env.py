@@ -9,6 +9,7 @@ from app.models import audit
 from app.models import user
 from app.models import common
 from app.models import stock
+from app.models import login_attempt
 
 from app.core.database import Base
 

@@ -1,7 +1,14 @@
-from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Integer
+from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Integer, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.common import Base
+from enum import Enum
+
+
+class PortfolioType(str, Enum):
+    """포트폴리오 유형"""
+    AGGRESSIVE = "aggressive"  # 공격형
+    BALANCED = "balanced"     # 균형형
 
 
 class Stock(Base):
@@ -15,6 +22,14 @@ class Stock(Base):
     code = Column(String(20), unique=True, index=True, nullable=False, comment="증권 거래소 코드 (예: 005930)")
     name = Column(String(255), nullable=False, comment="증권명 (예: 삼성전자)")
     current_price = Column(Float, nullable=False, comment="현재 주가")
+    market_cap = Column(Float, nullable=False, comment="시가총액")
+    volume = Column(Integer, nullable=False, comment="거래량")
+    high_price = Column(Float, nullable=False, comment="고가")
+    low_price = Column(Float, nullable=False, comment="저가")
+    open_price = Column(Float, nullable=False, comment="시가")
+    prev_close = Column(Float, nullable=False, comment="전일 종가")
+    change_rate = Column(Float, nullable=False, comment="등락률")
+    change_amount = Column(Float, nullable=False, comment="등락금액")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="생성 일시")
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), comment="수정 일시")
 
@@ -70,7 +85,7 @@ class AdvisoryRequest(Base):
 
     id = Column(String(36), primary_key=True, index=True, comment="UUID 형식의 고유 식별자")
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False, comment="사용자 ID")
-    portfolio_type = Column(String(20), nullable=False, comment="포트폴리오 유형 (공격형/균형형)")
+    portfolio_type = Column(SQLEnum(PortfolioType), nullable=False, comment="포트폴리오 유형")
     status = Column(String(20), nullable=False, comment="자문 상태 (대기/완료/실패)")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="생성 일시")
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), comment="수정 일시")

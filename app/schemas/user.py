@@ -1,36 +1,43 @@
-from pydantic import BaseModel
-from datetime import datetime
+from pydantic import BaseModel, EmailStr
 from typing import Optional
-
-from app.utils.constant.globals import UserRole
+from datetime import datetime
+from app.models.user import UserRole, PortfolioType
 
 class UserBase(BaseModel):
-	email: str
+	email: EmailStr
+	first_name: Optional[str] = None
+	last_name: Optional[str] = None
+	portfolio_type: Optional[PortfolioType] = None
 
 class UserCreate(UserBase):
 	password: str
-	first_name: str or None = None
-	last_name: str or None = None
 
 class UserLogin(UserBase):
 	password: str
 
-class User(UserBase):
+class UserUpdate(BaseModel):
+	first_name: Optional[str] = None
+	last_name: Optional[str] = None
+	portfolio_type: Optional[PortfolioType] = None
+	password: Optional[str] = None
+
+class UserInDB(UserBase):
 	id: str
-	first_name: Optional[str]
-	last_name: Optional[str]
+	role: UserRole
 	is_active: bool
-	role: UserRole or None
+	balance: float
 	created_at: datetime
-	updated_at: datetime
+	updated_at: Optional[datetime] = None
+
 	class Config:
 		from_attributes = True
 
-class UserUpdate(BaseModel):
-	first_name: str or None = None
-	last_name: str or None = None
-	is_active: bool | None = None
-	role: UserRole or None = None
+class User(UserInDB):
+	pass
+
+class UserBalance(BaseModel):
+	balance: float
+	stocks: list[dict]  # 보유 증권 목록
 
 class Token(BaseModel):
 	access_token: str

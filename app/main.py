@@ -8,8 +8,8 @@ from app.core.settings import config
 
 def create_app() -> FastAPI:
     app_ = FastAPI(
-        title="FastAPI kit for production level.",
-        description="FastAPI kit that can be your helping hand for production level server. The repo is developed with 💗 by mahmud.",
+        title="Balance One App API",
+        description="잔고(Balance)를 중심으로 자문을 제공하는 시스템 API 문서입니다.",
         version="1.0.0",
         docs_url=None if config.ENVIRONMENT == "production" else "/docs",
         redoc_url=None if config.ENVIRONMENT == "production" else "/redoc",

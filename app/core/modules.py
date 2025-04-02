@@ -1,19 +1,20 @@
 # fastapi 
+from typing import List
+
 from fastapi import FastAPI
 from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
-from typing import List
-
 # sqlalchemy
-from sqladmin import Admin, ModelView
+from sqladmin import Admin
+from starlette.middleware.sessions import SessionMiddleware
 
-# import 
-from app.core.database import engine
-from app.models.admin import UserAdmin
 from app.api.routers.main_router import router
+# import
+from app.core.database import engine
 from app.core.settings import config
+from app.models.admin import UserAdmin
 from app.utils.env import SECRET_KEY
+
 
 def init_routers(app_: FastAPI) -> None:
     app_.include_router(router)
@@ -21,15 +22,17 @@ def init_routers(app_: FastAPI) -> None:
     if config.ENVIRONMENT == "production":
         pass
     else:
-    	admin.add_view(UserAdmin)
+        admin.add_view(UserAdmin)
+
 
 origins = [
     "*",
-	# "http://localhost.tiangolo.com",
-	# "https://localhost.tiangolo.com",
-	# "http://localhost",
-	# "http://localhost:8080",
+    # "http://localhost.tiangolo.com",
+    # "https://localhost.tiangolo.com",
+    # "http://localhost",
+    # "http://localhost:8080",
 ]
+
 
 def make_middleware() -> List[Middleware]:
     middleware = [
@@ -47,7 +50,6 @@ def make_middleware() -> List[Middleware]:
         # Middleware(SQLAlchemyMiddleware),
     ]
     return middleware
-
 
 # def init_cache() -> None:
 #     Cache.init(backend=RedisBackend(), key_maker=CustomKeyMaker())

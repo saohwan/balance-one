@@ -46,7 +46,6 @@
 │   ├── schemas/        # Pydantic 스키마
 │   └── utils/          # 유틸리티 함수
 ├── alembic/            # 데이터베이스 마이그레이션
-├── tests/              # 테스트 코드
 ├── Dockerfile          # Docker 설정
 ├── docker-compose.yml  # Docker Compose 설정
 └── requirements.txt    # Python 패키지 의존성

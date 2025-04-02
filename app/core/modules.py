@@ -11,18 +11,14 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.api.routers.main_router import router
 # import
 from app.core.database import engine
-from app.core.settings import config
-from app.models.admin import UserAdmin
+from app.core.settings import settings
 from app.utils.env import SECRET_KEY
 
 
 def init_routers(app_: FastAPI) -> None:
     app_.include_router(router)
     admin = Admin(app_, engine)
-    if config.ENVIRONMENT == "production":
-        pass
-    else:
-        admin.add_view(UserAdmin)
+    # 필요한 경우 다른 Admin 뷰 추가
 
 
 origins = [

@@ -2,7 +2,8 @@ from sqlalchemy import Column, String, DateTime, JSON, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.models.common import Base
+from app.core.database import Base
+from .common import CommonModel
 
 
 class AuditLog(Base):

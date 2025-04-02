@@ -11,6 +11,14 @@ class StockBase(BaseModel):
     code: str  # 증권 코드
     name: str  # 증권명
     current_price: float  # 현재가
+    market_cap: float  # 시가총액
+    volume: int  # 거래량
+    high_price: float  # 고가
+    low_price: float  # 저가
+    open_price: float  # 시가
+    prev_close: float  # 전일 종가
+    change_rate: float  # 등락률
+    change_amount: float  # 등락금액
 
 
 class StockCreate(StockBase):
@@ -22,6 +30,14 @@ class StockUpdate(BaseModel):
     """증권 정보 수정 스키마"""
     name: Optional[str] = None  # 증권명 (선택)
     current_price: Optional[float] = None  # 현재가 (선택)
+    market_cap: Optional[float] = None  # 시가총액 (선택)
+    volume: Optional[int] = None  # 거래량 (선택)
+    high_price: Optional[float] = None  # 고가 (선택)
+    low_price: Optional[float] = None  # 저가 (선택)
+    open_price: Optional[float] = None  # 시가 (선택)
+    prev_close: Optional[float] = None  # 전일 종가 (선택)
+    change_rate: Optional[float] = None  # 등락률 (선택)
+    change_amount: Optional[float] = None  # 등락금액 (선택)
 
 
 class StockInDB(StockBase):

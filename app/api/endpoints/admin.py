@@ -40,7 +40,16 @@ def create_stock(
         id=str(uuid.uuid4()),
         code=stock_in.code,
         name=stock_in.name,
-        current_price=stock_in.current_price
+        current_price=stock_in.current_price,
+        market_cap=stock_in.market_cap,
+        volume=stock_in.volume,
+        high_price=stock_in.high_price,
+        low_price=stock_in.low_price,
+        open_price=stock_in.open_price,
+        prev_close=stock_in.prev_close,
+        change_rate=stock_in.change_rate,
+        change_amount=stock_in.change_amount,
+        is_active=True
     )
 
     db.add(stock)
@@ -55,7 +64,8 @@ def create_stock(
         {
             "stock_code": stock_in.code,
             "stock_name": stock_in.name,
-            "price": stock_in.current_price
+            "price": stock_in.current_price,
+            "market_cap": stock_in.market_cap
         },
         request
     )

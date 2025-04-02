@@ -10,7 +10,7 @@ class CommonModel(Base):
     """
     __abstract__ = True
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True, comment="UUID 형식의 고유 식별자")
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), index=True, comment="UUID 형식의 고유 식별자")
     # id = Column(Integer, primary_key=True, index=True)
     is_active = Column(Boolean, default=True, comment="레코드 활성화 상태")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="생성 일시")

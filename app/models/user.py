@@ -4,7 +4,7 @@ from sqlalchemy import Boolean, Column, String, DateTime, Float, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.models.common import Base
+from app.core.database import Base
 from app.utils.constant.globals import UserRole
 from .common import CommonModel
 
@@ -29,7 +29,6 @@ class User(CommonModel):
     """
     __tablename__ = "users"
 
-    id = Column(String(36), primary_key=True, index=True, comment="UUID 형식의 고유 식별자")
     email = Column(String(255), unique=True, index=True, nullable=False, comment="사용자 이메일 (로그인 ID)")
     hashed_password = Column(String(255), nullable=False, comment="암호화된 비밀번호")
     first_name = Column(String(255), comment="이름")

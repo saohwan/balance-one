@@ -10,6 +10,7 @@ from app.models.audit import AuditLog
 from app.models.stock import Stock
 from app.models.user import User
 from app.schemas.stock import StockCreate, StockUpdate, Stock as StockSchema
+from app.schemas.audit import AuditLog as AuditLogSchema
 from app.utils.audit import log_user_action
 
 router = APIRouter()
@@ -163,7 +164,7 @@ def get_stocks(
     return stocks
 
 
-@router.get("/audit-logs")
+@router.get("/audit-logs", response_model=List[AuditLogSchema])
 def get_audit_logs(
         *,
         db: Session = Depends(get_db),

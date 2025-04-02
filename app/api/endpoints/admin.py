@@ -1,13 +1,16 @@
+import uuid
 from typing import Any, List
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_admin_user
-from app.models.user import User
+from app.models.audit import AuditLog
 from app.models.stock import Stock
+from app.models.user import User
 from app.schemas.stock import StockCreate, StockUpdate, Stock as StockSchema
 from app.utils.audit import log_user_action
-import uuid
 
 router = APIRouter()
 

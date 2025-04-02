@@ -1,138 +1,144 @@
-# FastAPI 프로젝트 구조 트리
+# 증권 자문 시스템 (Balance One)
 
-## 주요 기능
-* FastAPI 프로젝트 구조 트리
-* 사용자 모듈
-    - id, 이름, 성, **이메일** (사용자명), **비밀번호**, 역할, 활성화 상태, 생성일, 수정일
-* 관리자 대시보드 => sqladmin
-* 인증 => JWT
-* DB 마이그레이션 => alembic
-* 미들웨어
-* 3가지 서버 환경
-    - 프로덕션, 개발, 테스트
-* UUID를 기본 키로 사용
-* RBAC(역할 기반 접근 제어) 적용
-* 구글 인증(OAuth2) 적용
+증권 자문 시스템은 FastAPI 기반의 웹 애플리케이션으로, 사용자들에게 맞춤형 포트폴리오 추천과 자문 서비스를 제공합니다.
 
-## 프로젝트 구조
-```sh
-├── alembic     # 데이터베이스 마이그레이션 관리
-├── alembic.ini
-├── app
-│   ├── api
-│   │   ├── endpoints   # 각 기능별 모듈 (사용자, 상품, 결제 등)
-│   │   │   ├── __init__.py
-│   │   │   └── user
-│   │   │       ├── auth.py
-│   │   │       ├── functions.py
-│   │   │       ├── __init__.py
-│   │   │       └── user.py
-│   │   ├── __init__.py
-│   │   └── routers     # FastAPI 라우터, 각 기능별 라우터 포함
-│   │       ├── main_router.py
-│   │       ├── __init__.py
-│   │       └── user.py
-│   ├── core    # 데이터베이스 관리, 의존성 등 핵심 기능
-│   │   ├── database.py
-│   │   ├── dependencies.py
-│   │   ├── __init__.py
-│   │   └── settings.py
-│   ├── __init__.py
-│   ├── main.py     # FastAPI 앱 초기화 및 컴포넌트 통합
-│   ├── models      # 사용자, 상품, 결제 등 데이터베이스 모델 정의
-│   │   ├── admin.py
-│   │   ├── common.py
-│   │   ├── __init__.py
-│   │   └── user.py
-│   ├── schemas    # Pydantic 모델 (데이터 검증)
-│   │   ├── __init__.py
-│   │   └── user.py
-│   └── utils       # 여러 기능에서 사용되는 유틸리티 함수
-├── requirements.txt # 프로젝트 의존성 목록
-```
+## 🌟 주요 기능
 
-## 설치 및 실행 방법
+- **사용자 관리**
+  - 회원가입 및 로그인
+  - JWT 기반 인증
+  - 계정 관리
 
-1. 저장소 클론:
-```sh
+- **계좌 관리**
+  - 입금/출금
+  - 잔고 조회
+  - 거래 내역 조회
+
+- **자문 시스템**
+  - 포트폴리오 유형 선택 (공격형/균형형)
+  - 자동 포트폴리오 추천
+  - 자문 내역 조회
+
+- **관리자 기능**
+  - 증권 등록/수정/삭제
+  - 감사 로그 조회
+
+## 🛠 기술 스택
+
+- **백엔드**
+  - FastAPI
+  - SQLAlchemy
+  - MySQL
+  - JWT 인증
+
+- **개발 도구**
+  - Docker
+  - Docker Compose
+  - phpMyAdmin
+
+## 📁 프로젝트 구조
 
 ```
-
-2. 가상환경 생성 및 활성화:
-```sh
-$ cd fastapi-production-boilerplate
-$ python -m venv venv
-$ source venv/bin/activate  # macOS/Linux
-# Windows의 경우: venv\Scripts\activate
+├── app/
+│   ├── api/            # API 엔드포인트
+│   ├── core/           # 핵심 설정
+│   ├── models/         # 데이터베이스 모델
+│   ├── schemas/        # Pydantic 스키마
+│   └── utils/          # 유틸리티 함수
+├── alembic/            # 데이터베이스 마이그레이션
+├── tests/              # 테스트 코드
+├── Dockerfile          # Docker 설정
+├── docker-compose.yml  # Docker Compose 설정
+└── requirements.txt    # Python 패키지 의존성
 ```
 
-3. 의존성 설치:
-```sh
-# 고정 버전 설치
-(venv)$ pip install -r requirements.txt
+## 🚀 시작하기
 
-# 또는 최신 버전 설치
-(venv)$ pip install -r dev.txt
+### 1. 환경 설정
+
+```bash
+# 저장소 클론
+git clone [repository-url]
+
+# 프로젝트 디렉토리 이동
+cd balance-one
+
+# Docker 컨테이너 실행
+docker-compose up -d
 ```
 
-4. 환경 설정:
-- `.env.example` 파일을 `.env`로 복사하고 필요한 정보를 입력하세요.
+### 2. 서비스 접근
 
-5. 데이터베이스 마이그레이션:
-```sh
-(venv)$ alembic upgrade head
+- **FastAPI 애플리케이션**: http://localhost:8000
+- **API 문서**: http://localhost:8000/docs
+- **phpMyAdmin**: http://localhost:8080
+
+### 3. 환경 변수 설정
+
+`.env` 파일을 생성하고 다음 환경 변수를 설정합니다:
+
+```env
+# 데이터베이스
+DATABASE_URL=mysql+pymysql://user:password@db:3306/balance_one
+
+# 보안
+SECRET_KEY=your-secret-key-here
+REFRESH_SECRET_KEY=your-refresh-secret-key-here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# 환경
+ENVIRONMENT=development
 ```
 
-6. 서버 실행:
-```sh
-# uvicorn으로 직접 실행 (버전 0.100.0 이전)
-(venv)$ uvicorn app.main:app --reload
+## 🔧 Docker 명령어
 
-# 또는 FastAPI CLI 사용 (버전 0.100.0 이후)
-(venv)$ fastapi dev app/main.py
+```bash
+# 컨테이너 실행
+docker-compose up -d
+
+# 컨테이너 중지
+docker-compose down
+
+# 로그 확인
+docker-compose logs -f
+
+# 데이터베이스 초기화
+docker-compose down -v
+docker-compose up -d
 ```
 
-## 사용자 모듈 API
-| 번호 | 메서드 | 경로 | 기능 | 필드 | 접근 권한 | 
-|------|--------|------|------|------|-----------|
-| 1 | POST | `/login` | 로그인 | **이메일**, **비밀번호** | 모든 사용자 |
-| 2 | POST | `/refresh/?refresh_token=` | 액세스 토큰 갱신 | 없음 | 모든 사용자 |
-| 3 | POST | `/users/` | 새 사용자 생성 | **이메일**, **비밀번호**, 이름, 성 | 모든 사용자 |
-| 4 | GET | `/users/` | 전체 사용자 목록 조회 | 이메일, 비밀번호, 이름, 성, 역할, 활성화 상태, 생성일, 수정일, id | 관리자 |
-| 5 | GET | `/users/me/` | 현재 사용자 정보 조회 | 이메일, 비밀번호, 이름, 성, 역할, 활성화 상태, 생성일, 수정일, id | 로그인한 사용자 |
-| 6 | GET | `/users/{user_id}` | 특정 사용자 정보 조회 | 이메일, 비밀번호, 이름, 성, 역할, 활성화 상태, 생성일, 수정일, id | 로그인한 사용자 |
-| 7 | PATCH | `/users/{user_id}` | 사용자 정보 부분 수정 | 이메일, 비밀번호, 활성화 상태, 역할 | 관리자 |
-| 8 | DELETE | `/users/{user_id}` | 사용자 삭제 | 없음 | 관리자 |
-| 9 | GET | `/` | 홈페이지 | 없음 | 모든 사용자 |
-| 10 | GET | `/admin` | 관리자 대시보드 | 없음 | 모든 사용자 |
+## 📝 API 엔드포인트
 
-## OAuth2 - 소셜 로그인
-| 번호 | 메서드 | 경로 | 기능 | 필드 | 접근 권한 | 
-|------|--------|------|------|------|-----------|
-| 1 | GET | `/social/google/login` | 구글 로그인 | 없음 | 모든 사용자 |
-| 2 | GET | `/social/auth/google/callback` | 구글 콜백 | 없음 | 모든 사용자 |
+### 인증 관련
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/api/auth/register` | 회원가입 |
+| POST | `/api/auth/login` | 로그인 |
+| POST | `/api/auth/refresh` | 토큰 갱신 |
 
-## 기술 스택
-### 백엔드
-#### 언어:
-    Python
+### 계좌 관련
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/api/account/deposit` | 입금 |
+| POST | `/api/account/withdraw` | 출금 |
+| GET | `/api/account/balance` | 잔고 조회 |
+| GET | `/api/account/transactions` | 거래 내역 조회 |
 
-#### 프레임워크:
-    FastAPI
-    pydantic
-	
-#### 기타 라이브러리 / 도구:
-    SQLAlchemy
-    starlette
-    uvicorn
-    python-jose
-    alembic
+### 자문 관련
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/api/advisory/request` | 자문 요청 |
+| GET | `/api/advisory/requests` | 자문 내역 조회 |
+| GET | `/api/advisory/requests/{request_id}` | 자문 상세 조회 |
 
-## ⚠️ 주의사항
-* 제공된 시크릿 키를 그대로 사용하지 마세요.
-* 각 프로젝트마다 새로운 시크릿 키를 생성하세요.
-* 다음 명령어로 새로운 시크릿 키를 생성할 수 있습니다:
-```sh
-openssl rand -hex 32
-```
+### 관리자 관련
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/api/admin/stocks` | 증권 등록 |
+| PUT | `/api/admin/stocks/{stock_id}` | 증권 수정 |
+| DELETE | `/api/admin/stocks/{stock_id}` | 증권 삭제 |
+| GET | `/api/admin/stocks` | 증권 목록 조회 |
+| GET | `/api/admin/audit-logs` | 감사 로그 조회 |
+
 

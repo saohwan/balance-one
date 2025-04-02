@@ -1,28 +1,51 @@
 from pydantic_settings import BaseSettings
-from enum import Enum 
+from enum import Enum
+from typing import Optional, List
+import os
+from dotenv import load_dotenv
 
 from app.utils.env import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_DAYS
+
+# .env 파일 로드
+load_dotenv()
+
 
 class EnvironmentType(str, Enum):
     DEVELOPMENT = "development"
     PRODUCTION = "production"
     TEST = "test"
 
-class BaseConfig(BaseSettings):
+
+class Settings(BaseSettings):
+    # 프로젝트 기본 설정
+    PROJECT_NAME: str = "Balance One"
+    VERSION: str = "1.0.0"
+    API_V1_STR: str = "/api/v1"
+
+    # 데이터베이스 설정
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        "mysql+pymysql://user:password@db:3306/balance_one"
+    )
+
+    # JWT 설정
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # CORS 설정
+    BACKEND_CORS_ORIGINS: List[str] = ["*"]
+
+    # 보안 설정
+    PASSWORD_MIN_LENGTH: int = 8
+    MAX_LOGIN_ATTEMPTS: int = 5
+    LOGIN_TIMEOUT_MINUTES: int = 30
+
     class Config:
         case_sensitive = True
+        env_file = ".env"
 
-class Config(BaseConfig):
-    DEBUG: int = 0
-    DEFAULT_LOCALE: str = "en_US"
-    ENVIRONMENT: str = EnvironmentType.DEVELOPMENT
-    # REDIS_URL: RedisDsn = "redis://localhost:6379/7"
-    RELEASE_VERSION: str = "0.1"
-    SHOW_SQL_ALCHEMY_QUERIES: int = 0
-    SECRET_KEY: str = SECRET_KEY
-    ALGORITHM: str = ALGORITHM
-    ACCESS_TOKEN_EXPIRE_DAYS: int = ACCESS_TOKEN_EXPIRE_DAYS
-    # CELERY_BROKER_URL: str = "amqp://rabbit:password@localhost:5672"
-    # CELERY_BACKEND_URL: str = "redis://localhost:6379/0"
 
-config: Config = Config()
+# 전역 설정 객체 생성
+settings = Settings()

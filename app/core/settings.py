@@ -1,10 +1,9 @@
-from pydantic_settings import BaseSettings
-from enum import Enum
-from typing import Optional, List
 import os
-from dotenv import load_dotenv
+from enum import Enum
+from typing import List
 
-from app.utils.env import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_DAYS
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
 # .env 파일 로드
 load_dotenv()
@@ -17,6 +16,9 @@ class EnvironmentType(str, Enum):
 
 
 class Settings(BaseSettings):
+    """
+    TODO: 운영 단계에서는 환경 변수 항목들
+    """
     # 프로젝트 기본 설정
     PROJECT_NAME: str = "Balance One"
     DESCRIPTION: str = "Balance One API Server"

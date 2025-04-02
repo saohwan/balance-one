@@ -33,19 +33,19 @@ services:
     networks:
       - balance-one-network
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    ports:
-      - "8080:80"
-    environment:
-      - PMA_HOST=db
-      - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_USER=user
-      - MYSQL_PASSWORD=password
-    depends_on:
-      - db
-    networks:
-      - balance-one-network
+#  phpmyadmin:
+#    image: phpmyadmin/phpmyadmin
+#    ports:
+#      - "8080:80"
+#    environment:
+#      - PMA_HOST=db
+#      - MYSQL_ROOT_PASSWORD=rootpassword
+#      - MYSQL_USER=user
+#      - MYSQL_PASSWORD=password
+#    depends_on:
+#      - db
+#    networks:
+#      - balance-one-network
 
 volumes:
   mysql_data:

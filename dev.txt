@@ -30,4 +30,5 @@ pydantic_settings
 python-dotenv
 authlib
 httpx
-itsdangerous 
+itsdangerous
+pytest

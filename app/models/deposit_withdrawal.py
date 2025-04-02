@@ -31,7 +31,7 @@ class DepositWithdrawal(CommonModel):
 
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False, comment="사용자 ID")
     type = Column(Enum(DepositWithdrawalType), nullable=False, comment="입출금 유형 (입금/출금)")
-    amount = Column(Float, nullable=False, comment="금액")
+    amount = Column(Float, nullable=False, comment="금액 (원화)")
     status = Column(Enum(DepositWithdrawalStatus), nullable=False, default=DepositWithdrawalStatus.PENDING, comment="입출금 상태")
     ip_address = Column(String(45), nullable=True, comment="입출금 발생 IP 주소")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="생성 일시")
@@ -45,7 +45,9 @@ class DepositWithdrawal(CommonModel):
         """금액 유효성 검사"""
         if amount <= 0:
             raise ValueError("금액은 0보다 커야 합니다.")
-        return amount
+        if amount > 1000000000:  # 10억원 제한
+            raise ValueError("금액은 10억원을 초과할 수 없습니다.")
+        return round(float(amount), 0)  # 원화는 소수점 없이 반올림
 
     def complete(self):
         """입출금 완료 처리"""
@@ -79,8 +81,8 @@ class DepositWithdrawal(CommonModel):
         return self.status == DepositWithdrawalStatus.CANCELLED
 
     def get_formatted_amount(self) -> str:
-        """포맷된 금액 반환"""
-        return f"{self.amount:,.2f}"
+        """포맷된 금액 반환 (원화)"""
+        return f"{self.amount:,.0f}원"
 
     def __repr__(self):
         return f"{self.type.value} - {self.get_formatted_amount()} ({self.status.value})" 

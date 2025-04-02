@@ -45,6 +45,7 @@ class User(CommonModel):
     deposit_withdrawals = relationship("DepositWithdrawal", back_populates="user")
     advisory_requests = relationship("AdvisoryRequest", back_populates="user")
     audit_logs = relationship("AuditLog", back_populates="user")
+    login_attempts = relationship("LoginAttempt", back_populates="user")
 
     def __repr__(self):
         return f"{self.email}"

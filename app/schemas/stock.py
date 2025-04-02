@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
+from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 
 from app.models.stock import PortfolioType
 
@@ -85,8 +86,17 @@ class UserStock(UserStockInDB):
 
 class TransactionBase(BaseModel):
     """거래 기본 정보 스키마"""
-    type: str  # 거래 유형 ('deposit' 입금 또는 'withdraw' 출금)
-    amount: float  # 거래 금액
+    type: str   # 거래 유형 ('deposit' 입금 또는 'withdraw' 출금)
+    amount: float = Field(..., gt=0, description="거래 금액 (원화)")  # 거래 금액
+
+    @validator('amount')
+    def validate_amount(cls, v):
+        """금액 유효성 검사"""
+        if v <= 0:
+            raise ValueError("금액은 0보다 커야 합니다.")
+        if v > 1000000000:  # 10억원 제한
+            raise ValueError("금액은 10억원을 초과할 수 없습니다.")
+        return round(v, 0)  # 원화는 소수점 없이 반올림
 
 
 class TransactionCreate(TransactionBase):
@@ -109,7 +119,9 @@ class TransactionInDB(TransactionBase):
 
 class Transaction(TransactionInDB):
     """거래 정보 응답 스키마"""
-    pass
+    def format_amount(self) -> str:
+        """금액을 원화 형식으로 포맷팅"""
+        return f"{self.amount:,.0f}원"
 
 
 class AdvisoryRequestBase(BaseModel):
@@ -136,7 +148,17 @@ class AdvisoryRequestInDB(AdvisoryRequestBase):
 
 class AdvisoryRequest(AdvisoryRequestInDB):
     """자문 요청 정보 응답 스키마"""
-    recommendations: List['AdvisoryRecommendation']  # 추천 증권 목록
+    recommendations: List[AdvisoryRecommendation]  # 추천 증권 목록
+    total_investment: float  # 총 투자금액
+    portfolio_summary: Dict[str, Any]  # 포트폴리오 요약 정보
+
+    def format_summary(self) -> Dict[str, str]:
+        """포트폴리오 요약 정보를 포맷팅"""
+        return {
+            "total_investment": f"{self.total_investment:,.0f}원",
+            "num_stocks": f"{len(self.recommendations)}개",
+            "average_investment": f"{self.total_investment / len(self.recommendations):,.0f}원"
+        }
 
 
 class AdvisoryRecommendationBase(BaseModel):
@@ -144,6 +166,20 @@ class AdvisoryRecommendationBase(BaseModel):
     stock_id: str  # 증권 ID
     quantity: int  # 추천 수량
     price_at_time: float  # 추천 시점 가격
+    market_cap: float  # 시가총액
+    change_rate: float  # 등락률
+    volume: int  # 거래량
+    total_investment: float  # 총 투자금액
+
+    def format_amounts(self) -> Dict[str, str]:
+        """금액 정보를 포맷팅"""
+        return {
+            "price": f"{self.price_at_time:,.0f}원",
+            "market_cap": f"{self.market_cap:,.0f}원",
+            "total_investment": f"{self.total_investment:,.0f}원",
+            "change_rate": f"{self.change_rate:+.2f}%",
+            "volume": f"{self.volume:,}주"
+        }
 
 
 class AdvisoryRecommendationCreate(AdvisoryRecommendationBase):

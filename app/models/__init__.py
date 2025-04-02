@@ -5,6 +5,7 @@ from app.models.deposit_withdrawal import DepositWithdrawal, DepositWithdrawalTy
 from app.models.user import User
 from app.models.stock import Stock, UserStock, AdvisoryRequest, AdvisoryRecommendation
 from app.models.audit import AuditLog
+from app.models.login_attempt import LoginAttempt
 
 __all__ = [
     "Base",
@@ -18,4 +19,5 @@ __all__ = [
     "AdvisoryRequest",
     "AdvisoryRecommendation",
     "AuditLog",
+    "LoginAttempt",
 ]

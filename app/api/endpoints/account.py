@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
@@ -8,11 +9,17 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.stock import UserStock
 from app.models.user import User
-from app.schemas.stock import TransactionCreate, Transaction as TransactionSchema, Transaction
+from app.models.deposit_withdrawal import DepositWithdrawal, DepositWithdrawalType, DepositWithdrawalStatus
+from app.schemas.stock import TransactionCreate, Transaction as TransactionSchema
 from app.schemas.user import UserBalance
 from app.utils.audit import log_user_action
 
 router = APIRouter()
+
+
+def get_kst_time():
+    """서버의 시스템 시간을 반환합니다."""
+    return datetime.now()
 
 
 @router.post("/deposit", response_model=TransactionSchema)
@@ -33,13 +40,14 @@ def deposit(
         )
 
     # 트랜잭션 생성
-    transaction = Transaction(
+    transaction = DepositWithdrawal(
         id=str(uuid.uuid4()),
         user_id=current_user.id,
-        type=transaction_in.type,
+        type=DepositWithdrawalType.DEPOSIT,
         amount=transaction_in.amount,
-        status="completed",
-        ip_address=request.client.host
+        status=DepositWithdrawalStatus.COMPLETED,
+        ip_address=request.client.host,
+        created_at=get_kst_time()
     )
 
     # 잔고 업데이트
@@ -86,13 +94,14 @@ def withdraw(
         )
 
     # 트랜잭션 생성
-    transaction = Transaction(
+    transaction = DepositWithdrawal(
         id=str(uuid.uuid4()),
         user_id=current_user.id,
-        type=transaction_in.type,
+        type=DepositWithdrawalType.WITHDRAWAL,
         amount=transaction_in.amount,
-        status="completed",
-        ip_address=request.client.host
+        status=DepositWithdrawalStatus.COMPLETED,
+        ip_address=request.client.host,
+        created_at=get_kst_time()
     )
 
     # 잔고 업데이트
@@ -154,9 +163,9 @@ def get_transactions(
     거래 내역을 조회합니다.
     """
     transactions = (
-        db.query(Transaction)
-        .filter(Transaction.user_id == current_user.id)
-        .order_by(Transaction.created_at.desc())
+        db.query(DepositWithdrawal)
+        .filter(DepositWithdrawal.user_id == current_user.id)
+        .order_by(DepositWithdrawal.created_at.desc())
         .offset(skip)
         .limit(limit)
         .all()

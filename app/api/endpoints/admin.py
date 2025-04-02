@@ -83,7 +83,7 @@ def update_stock(
         )
 
     # 업데이트할 필드만 업데이트
-    update_data = stock_in.dict(exclude_unset=True)
+    update_data = stock_in.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(stock, field, value)
 

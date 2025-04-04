@@ -50,6 +50,3 @@ class User(CommonModel):
 
     def __repr__(self):
         return f"{self.email}"
-
-
-metadata = Base.metadata

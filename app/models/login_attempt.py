@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, Boolean
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.sql import func
 
 from app.core.database import Base
@@ -24,4 +24,4 @@ class LoginAttempt(CommonModel):
     user = relationship("User", back_populates="login_attempts")
 
     def __repr__(self):
-        return f"{self.user.email if self.user else 'Unknown'} - {self.ip_address} ({'성공' if self.is_successful else '실패'})" 
+        return f"{self.user.email if self.user else 'Unknown'} - {self.ip_address} ({'성공' if self.is_successful else '실패'})"

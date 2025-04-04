@@ -1,19 +1,20 @@
-from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.core.dependencies import get_current_user
-from app.models.user import User
-from app.models.stock import AdvisoryRequest, AdvisoryRecommendation, Stock
-from app.schemas.stock import (
-    AdvisoryRequestCreate,
-    AdvisoryRequest as AdvisoryRequestSchema,
-    AdvisoryRecommendation as AdvisoryRecommendationSchema
-)
-from app.utils.portfolio import calculate_portfolio, validate_portfolio
-from app.utils.audit import log_user_action
 import uuid
 from datetime import datetime
+from typing import Any, List
+
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.models.stock import AdvisoryRequest, AdvisoryRecommendation, Stock
+from app.models.user import User
+from app.schemas.stock import (
+    AdvisoryRequestCreate,
+    AdvisoryRequest as AdvisoryRequestSchema
+)
+from app.utils.audit import log_user_action
+from app.utils.portfolio import calculate_portfolio, validate_portfolio
 
 router = APIRouter()
 
@@ -170,7 +171,7 @@ def get_advisory_requests(
             .filter(AdvisoryRecommendation.advisory_request_id == request.id)
             .all()
         )
-        
+
         total_investment = sum(rec.quantity * rec.price_at_time for rec in recommendations)
         portfolio_summary = {
             "total_investment": total_investment,

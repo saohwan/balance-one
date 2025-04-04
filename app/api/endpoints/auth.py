@@ -144,81 +144,28 @@ def register(
 
 
 @router.post("/login", response_model=Token)
-def login(
-        *,
-        db: Session = Depends(get_db),
-        login_data: LoginRequest,
-        request: Request
-) -> Any:
-    """
-    사용자 로그인을 처리합니다.
-    """
-    user = db.query(User).filter(User.email == login_data.username).first()
-
-    # IP 주소와 User-Agent 정보 추출
-    ip_address = request.client.host
-    user_agent = request.headers.get("user-agent", "")
-
-    if not user:
-        # 존재하지 않는 사용자의 경우 IP 주소만으로 시도 기록
-        record_login_attempt(
-            db=db,
-            user=None,  # 사용자 없음
-            ip_address=ip_address,
-            user_agent=user_agent,
-            is_successful=False
-        )
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    """사용자 로그인을 처리합니다."""
+    user = db.query(User).filter(User.email == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="이메일 또는 비밀번호가 올바르지 않습니다."
+            detail="이메일 또는 비밀번호가 올바르지 않습니다.",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-
-    # 로그인 시도 횟수 확인
-    if not check_login_attempts(db, user, ip_address):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"로그인 시도 횟수가 너무 많습니다. {LOGIN_TIMEOUT_MINUTES}분 후에 다시 시도해주세요."
-        )
-
-    if not verify_password(login_data.password, user.hashed_password):
-        # 비밀번호가 틀린 경우 시도 기록
-        record_login_attempt(
-            db=db,
-            user=user,
-            ip_address=ip_address,
-            user_agent=user_agent,
-            is_successful=False
-        )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="이메일 또는 비밀번호가 올바르지 않습니다."
-        )
-
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="비활성화된 계정입니다."
-        )
-
-    # 로그인 성공 기록
-    record_login_attempt(
-        db=db,
-        user=user,
-        ip_address=ip_address,
-        user_agent=user_agent,
-        is_successful=True
-    )
-
-    # 토큰 생성
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.id}, expires_delta=access_token_expires
     )
-    refresh_token = create_refresh_token(data={"sub": user.id})
-
-    # 감사 로그 기록
-    log_user_action(db, "login", user.id, request=request)
-
+    
+    # 리프레시 토큰 생성
+    refresh_token = create_refresh_token(
+        data={"sub": user.id}
+    )
+    
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,

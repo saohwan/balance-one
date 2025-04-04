@@ -1,7 +1,7 @@
 import enum
-from decimal import Decimal
-from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Boolean, Enum
-from sqlalchemy.orm import relationship, validates
+
+from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Enum
+from sqlalchemy.orm import relationship, validates, declarative_base
 from sqlalchemy.sql import func
 
 from app.core.database import Base
@@ -32,7 +32,8 @@ class DepositWithdrawal(CommonModel):
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False, comment="사용자 ID")
     type = Column(Enum(DepositWithdrawalType), nullable=False, comment="입출금 유형 (입금/출금)")
     amount = Column(Float, nullable=False, comment="금액 (원화)")
-    status = Column(Enum(DepositWithdrawalStatus), nullable=False, default=DepositWithdrawalStatus.PENDING, comment="입출금 상태")
+    status = Column(Enum(DepositWithdrawalStatus), nullable=False, default=DepositWithdrawalStatus.PENDING,
+                    comment="입출금 상태")
     ip_address = Column(String(45), nullable=True, comment="입출금 발생 IP 주소")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="생성 일시")
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), comment="수정 일시")
@@ -85,4 +86,4 @@ class DepositWithdrawal(CommonModel):
         return f"{self.amount:,.0f}원"
 
     def __repr__(self):
-        return f"{self.type.value} - {self.get_formatted_amount()} ({self.status.value})" 
+        return f"{self.type.value} - {self.get_formatted_amount()} ({self.status.value})"

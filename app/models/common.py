@@ -1,5 +1,8 @@
 from sqlalchemy import Column, Boolean, Integer, String , DateTime, func
 import uuid
+
+from sqlalchemy.orm import declarative_base
+
 from app.core.database import Base
 
 
@@ -15,4 +18,3 @@ class CommonModel(Base):
     is_active = Column(Boolean, default=True, comment="레코드 활성화 상태")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="생성 일시")
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="수정 일시")
-

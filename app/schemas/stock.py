@@ -58,6 +58,11 @@ class Stock(StockInDB):
     pass
 
 
+class StockResponse(Stock):
+    """증권 응답 스키마"""
+    pass
+
+
 class UserStockBase(BaseModel):
     """사용자 보유 증권 기본 정보 스키마"""
     stock_id: str  # 증권 ID

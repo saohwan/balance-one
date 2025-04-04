@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List, Dict, Any, ForwardRef
 
-from pydantic import BaseModel, Field, validator, ConfigDict
+from pydantic import BaseModel, Field, validator, field_validator, ConfigDict
 
 from app.models.stock import PortfolioType
 
@@ -90,7 +90,8 @@ class TransactionBase(BaseModel):
     type: str  # 거래 유형 ('deposit' 입금 또는 'withdraw' 출금)
     amount: float = Field(..., gt=0, description="거래 금액 (원화)")  # 거래 금액
 
-    @validator('amount')
+    @field_validator('amount')
+    @classmethod
     def validate_amount(cls, v):
         """금액 유효성 검사"""
         if v <= 0:

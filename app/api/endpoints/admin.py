@@ -16,7 +16,7 @@ from app.utils.audit import log_user_action
 router = APIRouter()
 
 
-@router.post("/stocks", response_model=StockSchema)
+@router.post("/stocks", response_model=StockSchema, status_code=status.HTTP_201_CREATED)
 def create_stock(
         *,
         db: Session = Depends(get_db),

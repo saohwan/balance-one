@@ -3,6 +3,7 @@ from enum import Enum
 from typing import List
 
 from dotenv import load_dotenv
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 # .env 파일 로드
@@ -34,6 +35,8 @@ class Settings(BaseSettings):
 
     # JWT 설정
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")
+    REFRESH_SECRET_KEY: str = os.getenv("REFRESH_SECRET_KEY", "your-refresh-secret-key-here")
+
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     ACCESS_TOKEN_EXPIRE_DAYS: int = 1  # 기존 ACCESS_TOKEN_EXPIRE_DAYS 대체
@@ -47,10 +50,11 @@ class Settings(BaseSettings):
     MAX_LOGIN_ATTEMPTS: int = 5
     LOGIN_TIMEOUT_MINUTES: int = 30
 
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
-        extra = "allow"  # 추가 필드 허용
+    model_config = ConfigDict(
+        case_sensitive=True,
+        env_file=".env",
+        extra="allow"  # 추가 필드 허용
+    )
 
 
 # 전역 설정 객체 생성
